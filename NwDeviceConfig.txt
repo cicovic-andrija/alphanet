@@ -1,0 +1,1568 @@
+===============================================================
+# Internet Service Provider "101" BGP Gateway configuration
+
+enable
+
+configure terminal
+
+# Interfaces
+interface FastEthernet 0/0
+ip address 101.8.0.1 255.255.0.0
+no shutdown
+
+interface GigabitEthernet 5/0
+ip address 103.8.0.1 255.255.255.252
+no shutdown
+
+interface GigabitEthernet 4/0
+ip address 103.8.0.13 255.255.255.252
+no shutdown
+exit
+
+# DHCP
+service dhcp
+ip dhcp pool LAN101
+network 101.8.0.0 255.255.0.0
+default-router 101.8.0.1
+exit
+ip dhcp excluded-address 101.8.0.1
+
+# BGP
+router bgp 101
+neighbor 103.8.0.2 remote-as 200
+neighbor 103.8.0.14 remote-as 100
+network 101.8.0.0 mask 255.255.0.0
+exit
+
+# Save config
+CTRL-C
+copy running-config startup-config
+
+===============================================================
+# Internet Service Provider "102" BGP Gateway configuration
+
+enable
+
+configure terminal
+
+# Interfaces
+interface FastEthernet 0/0
+ip address 102.8.0.1 255.255.0.0
+no shutdown
+
+interface GigabitEthernet 4/0
+ip address 103.8.0.6 255.255.255.252
+no shutdown
+
+interface GigabitEthernet 5/0
+ip address 103.8.0.9 255.255.255.252
+no shutdown
+exit
+
+# DHCP
+service dhcp
+ip dhcp pool LAN102
+network 102.8.0.0 255.255.0.0
+default-router 102.8.0.1
+exit
+ip dhcp excluded-address 102.8.0.1
+
+# BGP
+router bgp 102
+neighbor 103.8.0.5 remote-as 200
+neighbor 103.8.0.10 remote-as 100
+network 102.8.0.0 mask 255.255.0.0
+exit
+
+# Save config
+CTRL-C
+copy running-config startup-config
+
+===============================================================
+# Cloud Provider BGP Gateway configuration
+
+enable
+
+configure terminal
+
+# ACLs
+ip access-list extended VIRTUAL-DC-ACL
+permit tcp any host 200.8.1.2 eq 80
+permit tcp any host 200.8.1.2 eq 443
+permit tcp any host 200.8.1.3 eq 80
+permit tcp any host 200.8.1.3 eq 443
+permit tcp 100.20.8.0 0.0.0.15 host 200.8.1.2 eq 22
+permit tcp 100.20.8.0 0.0.0.15 host 200.8.1.2 eq 23
+permit tcp host 100.20.8.16 host 200.8.1.2 eq 22
+permit tcp host 100.20.8.16 host 200.8.1.2 eq 23
+deny tcp host 100.20.8.0 host 200.8.1.2
+permit icmp any host 200.8.1.2
+permit icmp any host 200.8.1.3
+exit
+
+# Interfaces
+interface GigabitEthernet 6/0
+ip address 200.8.1.1 255.255.255.240
+ip access-group ALFA-NET-ACL out
+no shutdown
+
+interface GigabitEthernet 5/0
+ip address 103.8.0.2 255.255.255.252
+no shutdown
+
+interface GigabitEthernet 4/0
+ip address 103.8.0.5 255.255.255.252
+no shutdown
+exit
+
+# BGP
+router bgp 200
+neighbor 103.8.0.1 remote-as 101
+neighbor 103.8.0.6 remote-as 102
+network 200.8.1.0 mask 255.255.255.240
+exit
+
+# Save config
+CTRL-C
+copy running-config startup-config
+
+===============================================================
+# AlfaNET BGP Gateway configuration
+
+enable
+
+configure terminal
+
+# Interfaces
+interface GigabitEthernet 5/0
+ip address 103.8.0.10 255.255.255.252
+no shutdown
+
+interface GigabitEthernet 4/0
+ip address 103.8.0.14 255.255.255.252
+no shutdown
+
+interface GigabitEthernet 9/0
+ip address 10.8.100.2 255.255.255.252
+no shutdown
+exit
+
+# BGP
+router bgp 100
+neighbor 103.8.0.9 remote-as 102
+neighbor 103.8.0.13 remote-as 101
+network 100.20.8.0 mask 255.255.255.0
+exit
+
+# Static route to AlfaNET public range
+ip route 100.20.8.0 255.255.255.0 10.8.100.1
+
+# Save config
+CTRL-C
+copy running-config startup-config
+
+===============================================================
+# Zemun (Z) backbone router configuration
+
+enable
+
+configure terminal
+
+# ACLs
+ip access-list extended LPNET-ACL
+permit tcp host 10.8.96.25 10.8.96.26
+permit udp host 10.8.96.25 10.8.96.26
+permit icmp host 10.8.96.25 10.8.96.26
+permit tcp host 10.8.96.38 10.8.96.37
+permit udp host 10.8.96.38 10.8.96.37
+permit icmp host 10.8.96.38 10.8.96.37
+deny tcp 10.8.0.0 0.0.255.255 172.8.0.0 0.0.255.255
+deny udp 10.8.0.0 0.0.255.255 172.8.0.0 0.0.255.255
+deny icmp 10.8.0.0 0.0.255.255 172.8.0.0 0.0.255.255
+permit ip any any
+permit tcp any any
+permit udp any any
+permit icmp any any
+exit
+
+# Interfaces
+interface GigabitEthernet 4/0
+ip address 10.8.96.6 255.255.255.252
+no shutdown
+
+interface GigabitEthernet 5/0
+ip address 10.8.96.9 255.255.255.252
+no shutdown
+exit
+
+interface FastEthernet 0/0
+no shutdown
+exit
+
+interface FastEthernet 0/0.1
+encapsulation dot1Q 10
+ip address 10.8.1.193 255.255.255.192
+
+interface FastEthernet 0/0.2
+encapsulation dot1Q 20
+ip address 10.8.2.193 255.255.255.192
+
+interface FastEthernet 0/0.5
+encapsulation dot1Q 50
+ip address 10.8.4.193 255.255.255.192
+exit
+
+interface GigabitEthernet 9/0
+ip address 10.8.96.21 255.255.255.252
+ip access-group LPNET-ACL out
+no shutdown
+exit
+
+# DHCP
+service dhcp
+
+ip dhcp pool SALES
+network 10.8.1.192 255.255.255.192
+default-router 10.8.1.193
+dns-server 100.20.8.100
+
+ip dhcp pool IT
+network 10.8.2.192 255.255.255.192
+default-router 10.8.2.193
+dns-server 100.20.8.100
+exit
+
+ip dhcp excluded-address 10.8.1.193
+ip dhcp excluded-address 10.8.2.193
+
+# Static route to LP network
+ip route 172.8.4.0 255.255.252.0 10.8.96.22
+
+# OSPF
+router ospf 1
+network 10.8.96.0 0.0.3.255 area 0
+network 10.8.0.0 0.0.15.255 area 10
+redistribute static subnets
+exit
+
+# Save config
+CTRL-C
+copy running-config startup-config
+
+===============================================================
+# Kaludjerica (K) backbone router configuration
+
+enable
+
+configure terminal
+
+# ACLs
+
+ip access-list extended CX-ACL
+deny tcp any 10.8.0.0 0.0.255.255
+deny udp any 10.8.0.0 0.0.255.255
+deny icmp any 10.8.0.0 0.0.255.255
+deny tcp any 172.8.0.0 0.0.255.255
+deny udp any 172.8.0.0 0.0.255.255
+deny icmp any 172.8.0.0 0.0.255.255
+permit ip any any
+permit tcp any any
+permit udp any any
+permit icmp any any
+exit
+
+# Interfaces
+interface GigabitEthernet 7/0
+ip address 10.8.96.1 255.255.255.252
+no shutdown
+
+interface GigabitEthernet 6/0
+ip address 10.8.96.14 255.255.255.252
+no shutdown
+
+interface GigabitEthernet 4/0
+ip address 10.8.224.254 255.255.255.0
+ip access-group CX-ACL in
+no shutdown
+exit
+
+# OSPF
+router ospf 1
+area 204 stub no-summary
+network 10.8.96.0 0.0.3.255 area 0
+network 10.8.224.0 0.0.0.255 area 204
+exit
+
+# Save config
+CTRL-C
+copy running-config startup-config
+
+===============================================================
+# Centar (C) backbone router configuration
+
+enable
+
+configure terminal
+
+# ACLs
+ip access-list extended LPNET-ACL
+permit tcp host 10.8.96.26 10.8.96.25
+permit udp host 10.8.96.26 10.8.96.25
+permit icmp host 10.8.96.26 10.8.96.25
+permit tcp host 10.8.96.34 10.8.96.33
+permit udp host 10.8.96.34 10.8.96.33
+permit icmp host 10.8.96.34 10.8.96.33
+deny tcp 10.8.0.0 0.0.255.255 172.8.0.0 0.0.255.255
+deny udp 10.8.0.0 0.0.255.255 172.8.0.0 0.0.255.255
+deny icmp 10.8.0.0 0.0.255.255 172.8.0.0 0.0.255.255
+permit ip any any
+permit tcp any any
+permit udp any any
+permit icmp any any
+exit
+
+deny tcp any 10.8.0.0 0.0.255.255
+deny udp any 10.8.0.0 0.0.255.255
+deny icmp any 10.8.0.0 0.0.255.255
+deny tcp any 172.8.0.0 0.0.255.255
+deny udp any 172.8.0.0 0.0.255.255
+deny icmp any 172.8.0.0 0.0.255.255
+permit ip any any
+permit tcp any any
+permit udp any any
+permit icmp any any
+exit
+
+# Interfaces
+interface GigabitEthernet 5/0
+ip address 10.8.96.10 255.255.255.252
+no shutdown
+
+interface GigabitEthernet 6/0
+ip address 10.8.96.13 255.255.255.252
+no shutdown
+
+interface GigabitEthernet 8/0
+no shutdown
+exit
+
+interface GigabitEthernet 8/0.1
+encapsulation dot1Q 10
+ip address 10.8.0.1 255.255.255.0
+
+interface GigabitEthernet 8/0.2
+encapsulation dot1Q 20
+ip address 10.8.2.1 255.255.255.192
+
+interface GigabitEthernet 8/0.3
+encapsulation dot1Q 30
+ip address 10.8.3.1 255.255.255.128
+
+interface GigabitEthernet 8/0.4
+encapsulation dot1Q 40
+ip address 10.8.3.129 255.255.255.128
+
+interface GigabitEthernet 8/0.5
+encapsulation dot1Q 50
+ip address 10.8.4.1 255.255.255.192
+exit
+
+interface GigabitEthernet 9/0
+ip address 10.8.96.17 255.255.255.252
+ip access-group LPNET-ACL out
+no shutdown
+exit
+
+# DHCP
+service dhcp
+
+ip dhcp pool SALES
+network 10.8.0.0 255.255.255.0
+default-router 10.8.0.1
+dns-server 100.20.8.100
+
+ip dhcp pool IT
+network 10.8.2.0 255.255.255.192
+default-router 10.8.2.1
+dns-server 100.20.8.100
+
+ip dhcp pool MGMT
+network 10.8.3.0 255.255.255.128
+default-router 10.8.3.1
+dns-server 100.20.8.100
+
+ip dhcp pool ADV
+network 10.8.3.128 255.255.255.128
+default-router 10.8.3.129
+dns-server 100.20.8.100
+exit
+
+ip dhcp excluded-address 10.8.0.1
+ip dhcp excluded-address 10.8.2.1
+ip dhcp excluded-address 10.8.3.1
+ip dhcp excluded-address 10.8.3.129
+
+# Static route to LP network
+ip route 172.8.0.0 255.255.252.0 10.8.96.18
+
+# OSPF
+router ospf 1
+network 10.8.96.0 0.0.3.255 area 0
+network 10.8.0.0 0.0.15.255 area 10
+redistribute static subnets
+exit
+
+# Save config
+CTRL-C
+copy running-config startup-config
+
+===============================================================
+# Banovo Brdo (BB) backbone router configuration
+
+enable
+
+configure terminal
+
+# ACLs
+ip access-list extended PUBLIC-SRVRS-ACL
+permit tcp 10.8.2.0 0.0.0.255 host 100.20.8.100
+permit tcp 10.8.2.0 0.0.0.255 host 100.20.8.101
+permit tcp 10.8.2.0 0.0.0.255 host 100.20.8.102
+permit udp host 10.8.16.3 host 100.20.8.100 eq 161
+permit udp host 10.8.16.3 host 100.20.8.101 eq 161
+permit udp host 10.8.16.3 host 100.20.8.102 eq 161
+permit icmp host 10.8.16.3 host 100.20.8.100
+permit icmp host 10.8.16.3 host 100.20.8.101
+permit icmp host 10.8.16.3 host 100.20.8.102
+permit tcp any host 100.20.8.101 eq 80
+permit tcp any host 100.20.8.101 eq 443
+permit tcp any host 100.20.8.102 eq 25
+permit tcp any eq 25 host 100.20.8.102
+permit tcp any host 100.20.8.102 eq 110
+permit udp any host 100.20.8.100 eq 53
+permit icmp any host 100.20.8.100
+permit icmp any host 100.20.8.101
+permit icmp any host 100.20.8.102
+exit
+
+ip access-list extended PRIVATE-SRVRS-ACL
+permit tcp 10.8.0.0 0.0.15.255 host 10.8.16.2
+permit udp 10.8.0.0 0.0.15.255 host 10.8.16.2
+permit icmp 10.8.0.0 0.0.15.255 host 10.8.16.2
+permit icmp any host 10.8.16.3 echo-reply
+permit udp any eq 161 host 10.8.16.3
+exit
+
+ip access-list extended LPNET-SRVR-ACL
+permit tcp host 10.8.96.33 host 10.8.96.34
+permit udp host 10.8.96.33 host 10.8.96.34
+permit icmp host 10.8.96.33 host 10.8.96.34
+permit tcp host 10.8.96.37 host 10.8.96.38
+permit udp host 10.8.96.37 host 10.8.96.38
+permit icmp host 10.8.96.37 host 10.8.96.38
+deny tcp 10.8.0.0 0.0.255.255 host 172.8.8.2
+deny udp 10.8.0.0 0.0.255.255 host 172.8.8.2
+deny icmp 10.8.0.0 0.0.255.255 host 172.8.8.2
+permit ip any any
+permit tcp any any
+permit udp any any
+permit icmp any any
+exit
+
+# Interfaces
+interface GigabitEthernet 2/0
+ip address 10.8.96.29 255.255.255.252
+ip nat inside
+ip access-group LPNET-SRVR-ACL out
+no shutdown
+
+interface GigabitEthernet 7/0
+ip address 10.8.96.2 255.255.255.252
+ip nat inside
+no shutdown
+
+interface GigabitEthernet 4/0
+ip address 10.8.96.5 255.255.255.252
+ip nat inside
+no shutdown
+
+interface GigabitEthernet 9/0
+ip address 10.8.100.1 255.255.255.252
+ip nat outside
+no shutdown
+exit
+
+interface GigabitEthernet 8/0
+no shutdown
+exit
+
+interface GigabitEthernet 8/0.1
+encapsulation dot1Q 10
+ip address 10.8.1.1 255.255.255.128
+ip nat inside
+
+interface GigabitEthernet 8/0.2
+encapsulation dot1Q 20
+ip address 10.8.2.65 255.255.255.192
+ip nat inside
+
+interface GigabitEthernet 8/0.5
+encapsulation dot1Q 50
+ip address 10.8.4.65 255.255.255.192
+ip nat inside
+
+interface GigabitEthernet 8/0.6
+encapsulation dot1Q 60
+ip address 10.8.16.1 255.255.252.0
+ip nat inside
+ip access-group PRIVATE-SRVRS-ACL out
+
+interface GigabitEthernet 8/0.10
+encapsulation dot1Q 100
+ip address 100.20.8.97 255.255.255.224
+ip nat inside
+ip access-group PUBLIC-SRVRS-ACL out
+exit
+
+# DHCP
+service dhcp
+
+ip dhcp pool SALES
+network 10.8.1.0 255.255.255.128
+default-router 10.8.1.1
+dns-server 100.20.8.100
+
+ip dhcp pool IT
+network 10.8.2.64 255.255.255.192
+default-router 10.8.2.65
+dns-server 100.20.8.100
+exit
+
+ip dhcp excluded-address 10.8.1.1
+ip dhcp excluded-address 10.8.2.65
+
+# NAT
+ip access-list standard IT-ACL
+permit 10.8.2.0 0.0.0.255
+exit
+
+ip access-list standard CX-ACL
+permit 10.8.128.0 0.0.0.255
+permit 10.8.160.0 0.0.0.255
+permit 10.8.192.0 0.0.0.255
+permit 10.8.224.0 0.0.0.255
+exit
+
+ip access-list standard BUSINESS-ACL
+permit 10.8.0.0 0.0.1.255
+permit 10.8.3.0 0.0.0.127
+permit 10.8.3.128 0.0.0.127
+exit
+
+ip access-list standard LPNET-ACL
+permit 172.8.0.0 0.0.255.255
+exit
+
+ip nat pool ALFA-NET-IT 100.20.8.1 100.20.8.16 netmask 255.255.255.0
+ip nat pool ALFA-NET-CX 100.20.8.17 100.20.8.32 netmask 255.255.255.0
+ip nat pool ALFA-NET-BUSINESS 100.20.8.33 100.20.8.40 netmask 255.255.255.0
+ip nat pool LPNET 100.20.8.41 100.20.8.41 netmask 255.255.255.0
+
+ip nat inside source list IT-ACL pool ALFA-NET-IT overload
+ip nat inside source list CX-ACL pool ALFA-NET-CX overload
+ip nat inside source list BUSINESS-ACL pool ALFA-NET-BUSINESS overload
+ip nat inside source list LPNET-ACL pool LPNET overload
+
+# Static route to LP network
+ip route 172.8.8.0 255.255.255.252 10.8.96.30
+
+# Default static route to BGP Gateway
+ip route 0.0.0.0 0.0.0.0 10.8.100.2
+
+# OSPF
+router ospf 1
+network 10.8.96.0 0.0.3.255 area 0
+network 10.8.0.0 0.0.15.255 area 10
+network 10.8.16.0 0.0.3.255 area 20
+redistribute static subnets
+default-information originate
+exit
+
+# Save config
+CTRL-C
+copy running-config startup-config
+
+===============================================================
+# Customer 1 (Cx1) router RCx1 configuration
+
+enable
+
+configure terminal
+
+# Interfaces
+interface FastEthernet 1/0
+ip address 192.168.8.30 255.255.255.192
+ip nat inside
+no shutdown
+
+interface GigabitEthernet 0/0
+ip address 10.8.224.1 255.255.255.0
+ip nat outside
+no shutdown
+exit
+
+# DHCP
+service dhcp
+ip dhcp pool CXLOCAL
+network 192.168.8.0 255.255.255.192
+default-router 192.168.8.30
+dns-server 100.20.8.100
+exit
+
+ip dhcp excluded-address 192.168.8.1 192.168.8.9
+ip dhcp excluded-address 192.168.8.30
+ip dhcp excluded-address 192.168.8.31 192.168.8.62
+
+# NAT
+ip access-list standard CXLOCAL
+permit 192.168.8.0 0.0.0.63
+exit
+
+ip nat pool ALFA-NET-KAL 10.8.224.1 10.8.224.1 netmask 255.255.255.0
+ip nat inside source list CXLOCAL pool ALFA-NET-KAL overload
+
+# OSPF
+router ospf 1
+router-id 10.8.224.1
+area 204 stub no-summary
+network 10.8.224.0 0.0.0.255 area 204
+exit
+
+# Save config
+CTRL-C
+copy running-config startup-config
+
+===============================================================
+# Customer 2 (Cx2) router RCx2 configuration
+
+enable
+
+configure terminal
+
+# Interfaces
+interface FastEthernet 1/0
+ip address 192.168.8.30 255.255.255.192
+ip nat inside
+no shutdown
+
+interface GigabitEthernet 0/0
+ip address 10.8.224.2 255.255.255.0
+ip nat outside
+no shutdown
+exit
+
+# DHCP
+service dhcp
+ip dhcp pool CXLOCAL
+network 192.168.8.0 255.255.255.192
+default-router 192.168.8.30
+dns-server 100.20.8.100
+exit
+
+ip dhcp excluded-address 192.168.8.1 192.168.8.9
+ip dhcp excluded-address 192.168.8.30
+ip dhcp excluded-address 192.168.8.31 192.168.8.62
+
+# NAT
+ip access-list standard CXLOCAL
+permit 192.168.8.0 0.0.0.63
+exit
+
+ip nat pool ALFA-NET-KAL 10.8.224.2 10.8.224.2 netmask 255.255.255.0
+ip nat inside source list CXLOCAL pool ALFA-NET-KAL overload
+
+# OSPF
+router ospf 1
+router-id 10.8.224.2
+area 204 stub no-summary
+network 10.8.224.0 0.0.0.255 area 204
+exit
+
+# Save config
+CTRL-C
+copy running-config startup-config
+
+===============================================================
+# LP's LP1 router configuration
+
+enable
+
+configure terminal
+
+# Interfaces
+interface GigabitEthernet 1/0
+ip address 172.8.2.1 255.255.255.252
+no shutdown
+
+interface GigabitEthernet 2/0
+ip address 172.8.2.5 255.255.255.252
+no shutdown
+
+interface GigabitEthernet 3/0
+ip address 172.8.2.9 255.255.255.252
+no shutdown
+
+## Link to AlfaNET
+interface GigabitEthernet 4/0
+ip address 172.8.2.14 255.255.255.252
+no shutdown
+
+interface FastEthernet 5/0
+ip address 172.8.0.1 255.255.255.192
+no shutdown
+exit
+
+# DHCP
+service dhcp
+ip dhcp pool LPLOCAL
+network 172.8.0.0 255.255.255.192
+default-router 172.8.0.1
+dns-server 100.20.8.100
+exit
+
+ip dhcp excluded-address 172.8.0.1
+
+# Static route to the GRE tunnel
+ip route 0.0.0.0 0.0.0.0 172.8.2.13
+
+# RIP
+router rip
+version 2
+network 172.8.0.0
+default-information originate
+exit
+
+# Save config
+CTRL-C
+copy running-config startup-config
+
+===============================================================
+# LP's LP2 router configuration
+
+enable
+
+configure terminal
+
+# Interfaces
+interface GigabitEthernet 0/0
+ip address 172.8.2.2 255.255.255.252
+no shutdown
+
+interface FastEthernet 1/0
+ip address 172.8.0.65 255.255.255.192
+no shutdown
+exit
+
+# DHCP
+service dhcp
+ip dhcp pool LPLOCAL
+network 172.8.0.64 255.255.255.192
+default-router 172.8.0.65
+dns-server 100.20.8.100
+exit
+
+ip dhcp excluded-address 172.8.0.65
+
+# RIP
+router rip
+version 2
+network 172.8.0.0
+exit
+
+# Save config
+CTRL-C
+copy running-config startup-config
+
+===============================================================
+# LP's LP3 router configuration
+
+enable
+
+configure terminal
+
+# Interfaces
+interface GigabitEthernet 0/0
+ip address 172.8.2.6 255.255.255.252
+no shutdown
+
+interface FastEthernet 1/0
+ip address 172.8.0.129 255.255.255.192
+no shutdown
+exit
+
+# DHCP
+service dhcp
+ip dhcp pool LPLOCAL
+network 172.8.0.128 255.255.255.192
+default-router 172.8.0.129
+dns-server 100.20.8.100
+exit
+
+ip dhcp excluded-address 172.8.0.129
+
+# RIP
+router rip
+version 2
+network 172.8.0.0
+exit
+
+# Save config
+CTRL-C
+copy running-config startup-config
+
+===============================================================
+# LP's LP4 router configuration
+
+enable
+
+configure terminal
+
+# Interfaces
+interface GigabitEthernet 0/0
+ip address 172.8.2.10 255.255.255.252
+no shutdown
+
+interface FastEthernet 1/0
+ip address 172.8.0.193 255.255.255.192
+no shutdown
+exit
+
+# DHCP
+service dhcp
+ip dhcp pool LPLOCAL
+network 172.8.0.192 255.255.255.192
+default-router 172.8.0.193
+dns-server 100.20.8.100
+exit
+
+ip dhcp excluded-address 172.8.0.193
+
+# RIP
+router rip
+version 2
+network 172.8.0.0
+exit
+
+# Save config
+CTRL-C
+copy running-config startup-config
+
+===============================================================
+# LP's LP5 router configuration
+
+enable
+
+configure terminal
+
+# Interfaces
+interface GigabitEthernet 1/0
+ip address 172.8.6.1 255.255.255.252
+no shutdown
+
+interface GigabitEthernet 2/0
+ip address 172.8.6.5 255.255.255.252
+no shutdown
+
+## Link to AlfaNET
+interface GigabitEthernet 3/0
+ip address 172.8.6.10 255.255.255.252
+no shutdown
+
+interface FastEthernet 4/0
+ip address 172.8.4.1 255.255.255.192
+no shutdown
+exit
+
+# DHCP
+service dhcp
+ip dhcp pool LPLOCAL
+network 172.8.4.0 255.255.255.192
+default-router 172.8.4.1
+dns-server 100.20.8.100
+exit
+
+ip dhcp excluded-address 172.8.4.1
+
+# Static route to the GRE tunnel FIXME
+ip route 0.0.0.0 0.0.0.0 172.8.6.9
+
+# RIP
+router rip
+version 2
+network 172.8.0.0
+default-information originate
+exit
+
+# Save config
+CTRL-C
+copy running-config startup-config
+
+===============================================================
+# LP's LP6 router configuration
+
+enable
+
+configure terminal
+
+# Interfaces
+interface GigabitEthernet 0/0
+ip address 172.8.6.2 255.255.255.252
+no shutdown
+
+interface FastEthernet 1/0
+ip address 172.8.4.65 255.255.255.192
+no shutdown
+exit
+
+# DHCP
+service dhcp
+ip dhcp pool LPLOCAL
+network 172.8.4.64 255.255.255.192
+default-router 172.8.4.65
+dns-server 100.20.8.100
+exit
+
+ip dhcp excluded-address 172.8.4.65
+
+# RIP
+router rip
+version 2
+network 172.8.0.0
+exit
+
+# Save config
+CTRL-C
+copy running-config startup-config
+
+===============================================================
+# LP's LP7 router configuration
+
+enable
+
+configure terminal
+
+# Interfaces
+interface GigabitEthernet 0/0
+ip address 172.8.6.6 255.255.255.252
+no shutdown
+
+interface FastEthernet 1/0
+ip address 172.8.4.129 255.255.255.192
+no shutdown
+exit
+
+# DHCP
+service dhcp
+ip dhcp pool LPLOCAL
+network 172.8.4.128 255.255.255.192
+default-router 172.8.4.129
+dns-server 100.20.8.100
+exit
+
+ip dhcp excluded-address 172.8.4.129
+
+# RIP
+router rip
+version 2
+network 172.8.0.0
+exit
+
+# Save config
+CTRL-C
+copy running-config startup-config
+
+===============================================================
+# Switch L3SW1 configuration
+
+enable
+
+configure terminal
+
+# Enable IP routing
+ip routing
+
+# Interfaces
+interface GigabitEthernet 0/1
+no switchport
+ip address 10.8.96.18 255.255.255.252
+no shutdown
+
+## VLAN interface for a GRE tunnel
+interface vlan 200
+ip address 172.8.2.13 255.255.252.0
+
+interface GigabitEthernet 0/2
+switchport mode access
+switchport access vlan 200
+no shutdown
+
+interface Tunnel 1
+ip address 10.8.96.25 255.255.255.252
+tunnel source GigabitEthernet 0/1
+tunnel destination 10.8.96.22
+
+interface Tunnel 2
+ip address 10.8.96.33 255.255.255.252
+tunnel source GigabitEthernet 0/1
+tunnel destination 10.8.96.30
+exit
+
+# Static IP route to the other ends of GRE tunnels
+ip route 172.8.4.0 255.255.252.0 10.8.96.26
+ip route 172.8.8.0 255.255.255.0 10.8.96.34
+
+# Static IP default route (for going out to the Internet)
+ip route 0.0.0.0 0.0.0.0 10.8.96.17
+
+# Set default gateway
+ip default-gateway 10.8.96.17
+
+# Save config
+CTRL-C
+copy running-config startup-config
+
+===============================================================
+# Switch L3SW2 configuration
+
+enable
+
+configure terminal
+
+# Enable IP routing
+ip routing
+
+# Interfaces
+interface GigabitEthernet 0/1
+no switchport
+ip address 10.8.96.22 255.255.255.252
+no shutdown
+
+## VLAN interface for a GRE tunnel
+interface vlan 200
+ip address 172.8.6.9 255.255.252.0
+
+interface GigabitEthernet 0/2
+switchport mode access
+switchport access vlan 200
+no shutdown
+
+interface Tunnel 1
+ip address 10.8.96.26 255.255.255.252
+tunnel source GigabitEthernet 0/1
+tunnel destination 10.8.96.18
+
+interface Tunnel 3
+ip address 10.8.96.37 255.255.255.252
+tunnel source GigabitEthernet 0/1
+tunnel destination 10.8.96.30
+exit
+
+# Static IP route to the other ends of GRE tunnels
+ip route 172.8.0.0 255.255.252.0 10.8.96.25
+ip route 172.8.8.0 255.255.255.0 10.8.96.38
+
+# Static IP default route (for going out to the Internet)
+ip route 0.0.0.0 0.0.0.0 10.8.96.21
+
+# Set default gateway
+ip default-gateway 10.8.96.21
+
+# Save config
+CTRL-C
+copy running-config startup-config
+
+===============================================================
+# Switch L3SW3 configuration
+
+enable
+
+configure terminal
+
+# Enable IP routing
+ip routing
+
+# Interfaces
+interface GigabitEthernet 0/1
+no switchport
+ip address 10.8.96.30 255.255.255.252
+no shutdown
+
+## VLAN interface for a GRE tunnel
+interface vlan 200
+ip address 172.8.8.1 255.255.255.252
+
+interface GigabitEthernet 0/2
+switchport mode access
+switchport access vlan 200
+no shutdown
+
+interface Tunnel 2
+ip address 10.8.96.34 255.255.255.252
+tunnel source GigabitEthernet 0/1
+tunnel destination 10.8.96.18
+
+interface Tunnel 3
+ip address 10.8.96.38 255.255.255.252
+tunnel source GigabitEthernet 0/1
+tunnel destination 10.8.96.22
+exit
+
+# Static IP route to the other ends of GRE tunnels
+ip route 172.8.0.0 255.255.252.0 10.8.96.33
+ip route 172.8.4.0 255.255.252.0 10.8.96.37
+
+# Static IP default route (for going out to the Internet)
+ip route 0.0.0.0 0.0.0.0 10.8.96.29
+
+# Set default gateway
+ip default-gateway 10.8.96.29
+
+# Save config
+CTRL-C
+copy running-config startup-config
+
+===============================================================
+# Switch SW0 configuration
+
+enable
+
+configure terminal
+
+# VLAN
+vtp domain BANOVOBRDO
+vtp mode server
+
+## Links to other switches
+interface GigabitEthernet 1/1
+switchport mode trunk
+switchport trunk native vlan 5
+interface GigabitEthernet 2/1
+switchport mode trunk
+switchport trunk native vlan 5
+exit
+
+## Link to router
+interface GigabitEthernet 0/1
+switchport mode trunk
+exit
+
+## Links to end devices
+interface FastEthernet 3/1
+switchport mode access
+switchport access vlan 10
+spanning-tree portfast
+spanning-tree bpduguard enable
+
+interface FastEthernet 4/1
+switchport mode access
+switchport access vlan 20
+spanning-tree portfast
+spanning-tree bpduguard enable
+
+interface FastEthernet 5/1
+switchport mode access
+switchport access vlan 20
+spanning-tree portfast
+spanning-tree bpduguard enable
+exit
+
+vlan 5
+name NATIVE
+vlan 10
+name SALES
+vlan 20
+name IT
+vlan 50
+name SWCONTROL
+vlan 60
+name SERVERS
+vlan 100
+name PUBLIC
+exit
+
+## VLAN management virtual interface
+interface vlan 50
+ip address 10.8.4.66 255.255.255.192
+no shutdown
+exit
+
+# Set default gateway
+ip default-gateway 10.8.4.65
+
+# Save config
+CTRL-C
+copy running-config startup-config
+
+===============================================================
+# Switch SW1 configuration
+
+enable
+
+configure terminal
+
+# VLAN
+vtp domain BANOVOBRDO
+vtp mode client
+
+interface GigabitEthernet 3/1
+switchport mode trunk
+switchport trunk native vlan 5
+exit
+
+interface GigabitEthernet 0/1
+switchport mode access
+switchport access vlan 100
+spanning-tree portfast
+spanning-tree bpduguard enable
+
+interface GigabitEthernet 1/1
+switchport mode access
+switchport access vlan 100
+spanning-tree portfast
+spanning-tree bpduguard enable
+
+interface GigabitEthernet 2/1
+switchport mode access
+switchport access vlan 100
+spanning-tree portfast
+spanning-tree bpduguard enable
+exit
+
+## VLAN management virtual interface
+interface vlan 50
+ip address 10.8.4.67 255.255.255.192
+no shutdown
+exit
+
+# Set default gateway
+ip default-gateway 10.8.4.65
+
+# Save config
+CTRL-C
+copy running-config startup-config
+
+===============================================================
+# Switch SW2 configuration
+
+enable
+
+configure terminal
+
+# VLAN
+vtp domain BANOVOBRDO
+vtp mode client
+
+interface GigabitEthernet 4/1
+switchport mode trunk
+switchport trunk native vlan 5
+exit
+
+interface GigabitEthernet 0/1
+switchport mode access
+switchport access vlan 60
+spanning-tree portfast
+spanning-tree bpduguard enable
+
+interface GigabitEthernet 1/1
+switchport mode access
+switchport access vlan 60
+spanning-tree portfast
+spanning-tree bpduguard enable
+exit
+
+## VLAN management virtual interface
+interface vlan 50
+ip address 10.8.4.68 255.255.255.192
+no shutdown
+exit
+
+# Set default gateway
+ip default-gateway 10.8.4.65
+
+# Save config
+CTRL-C
+copy running-config startup-config
+
+===============================================================
+# Switch SW3 configuration
+
+enable
+
+configure terminal
+
+# VLAN
+vtp domain CENTAR
+vtp mode server
+
+## Links to other switches
+interface FastEthernet 0/1
+switchport mode trunk
+switchport trunk native vlan 5
+interface FastEthernet 1/1
+switchport mode trunk
+switchport trunk native vlan 5
+interface FastEthernet 2/1
+switchport mode trunk
+switchport trunk native vlan 5
+exit
+
+## Link to router
+## Is there a way to specify native VLAN?
+interface GigabitEthernet 3/1
+switchport mode trunk
+exit
+
+vlan 5
+name NATIVE
+vlan 10
+name SALES
+vlan 20
+name IT
+vlan 30
+name MGMT
+vlan 40
+name ADV
+vlan 50
+name SWCONTROL
+exit
+
+## VLAN management virtual interface
+interface vlan 50
+ip address 10.8.4.2 255.255.255.192
+no shutdown
+exit
+
+# Set default gateway
+ip default-gateway 10.8.4.1
+
+# Save config
+CTRL-C
+copy running-config startup-config
+
+===============================================================
+# Switch SW4 configuration
+
+enable
+
+configure terminal
+
+# VLAN
+vtp domain CENTAR
+vtp mode client
+
+interface FastEthernet 0/1
+switchport mode trunk
+switchport trunk native vlan 5
+exit
+
+interface FastEthernet 1/1
+switchport mode access
+switchport access vlan 30
+spanning-tree portfast
+spanning-tree bpduguard enable
+
+interface FastEthernet 2/1
+switchport mode access
+switchport access vlan 20
+spanning-tree portfast
+spanning-tree bpduguard enable
+
+interface FastEthernet 3/1
+switchport mode access
+switchport access vlan 40
+spanning-tree portfast
+spanning-tree bpduguard enable
+
+interface FastEthernet 4/1
+switchport mode access
+switchport access vlan 10
+spanning-tree portfast
+spanning-tree bpduguard enable
+exit
+
+## VLAN management virtual interface
+interface vlan 50
+ip address 10.8.4.3 255.255.255.192
+no shutdown
+exit
+
+# Set default gateway
+ip default-gateway 10.8.4.1
+
+# Save config
+CTRL-C
+copy running-config startup-config
+
+===============================================================
+# Switch SW5 configuration
+
+enable
+
+configure terminal
+
+# VLAN
+vtp domain CENTAR
+vtp mode client
+
+interface FastEthernet 0/1
+switchport mode trunk
+switchport trunk native vlan 5
+exit
+
+interface FastEthernet 1/1
+switchport mode access
+switchport access vlan 30
+spanning-tree portfast
+spanning-tree bpduguard enable
+
+interface FastEthernet 2/1
+switchport mode access
+switchport access vlan 20
+spanning-tree portfast
+spanning-tree bpduguard enable
+
+interface FastEthernet 3/1
+switchport mode access
+switchport access vlan 40
+spanning-tree portfast
+spanning-tree bpduguard enable
+
+interface FastEthernet 4/1
+switchport mode access
+switchport access vlan 10
+spanning-tree portfast
+spanning-tree bpduguard enable
+exit
+
+## VLAN management virtual interface
+interface vlan 50
+ip address 10.8.4.4 255.255.255.192
+no shutdown
+exit
+
+# Set default gateway
+ip default-gateway 10.8.4.1
+
+# Save config
+CTRL-C
+copy running-config startup-config
+
+===============================================================
+# Switch SW6 configuration
+
+enable
+
+configure terminal
+
+# VLAN
+vtp domain CENTAR
+vtp mode client
+
+interface FastEthernet 0/1
+switchport mode trunk
+switchport trunk native vlan 5
+exit
+
+interface FastEthernet 1/1
+switchport mode access
+switchport access vlan 30
+spanning-tree portfast
+spanning-tree bpduguard enable
+
+interface FastEthernet 2/1
+switchport mode access
+switchport access vlan 20
+spanning-tree portfast
+spanning-tree bpduguard enable
+
+interface FastEthernet 3/1
+switchport mode access
+switchport access vlan 40
+spanning-tree portfast
+spanning-tree bpduguard enable
+
+interface FastEthernet 4/1
+switchport mode access
+switchport access vlan 10
+spanning-tree portfast
+spanning-tree bpduguard enable
+exit
+
+## VLAN management virtual interface
+interface vlan 50
+ip address 10.8.4.5 255.255.255.192
+no shutdown
+exit
+
+# Set default gateway
+ip default-gateway 10.8.4.1
+
+# Save config
+CTRL-C
+copy running-config startup-config
+
+===============================================================
+# Switch SW7 configuration
+
+enable
+
+configure terminal
+
+# VLAN
+vlan 10
+name SALES
+vlan 20
+name IT
+vlan 50
+name SWCONTROL
+exit
+
+## Link to router
+## Is there a way to specify native VLAN?
+interface FastEthernet 0/1
+switchport mode trunk
+exit
+
+interface FastEthernet 1/1
+switchport mode access
+switchport access vlan 10
+spanning-tree portfast
+spanning-tree bpduguard enable
+
+interface FastEthernet 2/1
+switchport mode access
+switchport access vlan 20
+spanning-tree portfast
+spanning-tree bpduguard enable
+exit
+
+## VLAN management virtual interface
+interface vlan 50
+ip address 10.8.4.194 255.255.255.192
+no shutdown
+exit
+
+# Set default gateway
+ip default-gateway 10.8.4.193
+
+# Save config
+CTRL-C
+copy running-config startup-config
+
+===============================================================
+# Switch SW8 configuration
+
+# No specific configuration, this is just a regular switch.
+# No management IP in SWCONTROL VLAN.
+===============================================================
+# Switch VS

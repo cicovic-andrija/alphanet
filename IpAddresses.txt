@@ -1,0 +1,102 @@
+# AlfaNET private range
+Autonomous System 100
+10.8.0.0/16 - OSPF routing, NATIVE VLAN ID: 5
+    Address range for internal business subnets: 10.8.0.0/20
+        SALES : 512 addresses : 10.8.0.0/23              (VLAN ID: 10)
+            Centar      : 256 addresses : 10.8.0.0/24
+            Banovo Brdo : 128 addresses : 10.8.1.0/25
+            Kaludjerica : 64 addresses  : 10.8.1.128/26
+            Zemun       : 64 addresses  : 10.8.1.192/26
+        IT    : 256 addresses : 10.8.2.0/24              (VLAN ID: 20)
+            Centar      : 64 addresses : 10.8.2.0/26
+            Banovo Brdo : 64 addresses : 10.8.2.64/26
+            Kaludjerica : 64 addresses : 10.8.2.128/26
+            Zemun       : 64 addresses : 10.8.2.192/26
+        MGMT  : 128 addresses : 10.8.3.0/25              (VLAN ID: 30)
+        ADV   : 128 addresses : 10.8.3.128/25            (VLAN ID: 40)
+
+        SWCONTROL : 256 addresses : 10.8.4.0/24          (VLAN ID: 50)
+            Centar      : 64 addresses : 10.8.4.0/26
+            Banovo Brdo : 64 addresses : 10.8.4.64/26
+            Kaludjerica : 64 addresses : 10.8.4.128/26
+            Zemun       : 64 addresses : 10.8.4.192/26
+
+    Address range for servers : 10.8.16.0/22             (VLAN ID: 60)
+        Internal   (AlfaNET internal server) : 10.8.16.2
+        NWMon      (SNMP monitoring server)  : 10.8.16.3
+
+    Address range for internal point-to-point subnets: 10.8.96.0/22
+        K-BB          : 10.8.96.0/30
+        BB-Z          : 10.8.96.4/30
+        Z-C           : 10.8.96.8/30
+        C-K           : 10.8.96.12/30
+        C-L3SW1       : 10.8.96.16/30
+        Z-L3SW2       : 10.8.96.20/30
+        L3SW1-L3SW2   : 10.8.96.24/30 (Tunnel 1)
+        BB-L3SW3      : 10.8.96.28/30
+        L3SW1-L3SW3   : 10.8.96.32/30 (Tunnel 2)
+        L3SW2-L3SW3   : 10.8.96.36/30 (Tunnel 3)
+
+    Internet link: 10.8.100.0/4
+
+# AlfaNET public range : 100.20.8.0/24
+    IT department                : 100.20.8.1  - 100.20.8.16
+    Customers                    : 100.20.8.17 - 100.20.8.32
+    Sales, marketing, management : 100.20.8.33 - 100.20.8.40
+    LPNet customer               : 100.20.8.41 - 100.20.8.41
+    Public servers: 100.20.8.96/27
+        DNS  : 100.20.8.100
+        WEB  : 100.20.8.101
+        MAIL : 100.20.8.102
+
+# AlfaNET customer's private range
+192.168.8.0/26
+DHCP: 192.168.8.10 - 192.168.8.30
+    Default gateway: 192.168.8.30
+
+# AlfaNET customer's internal range (n - customer's ID): 10.8.128.0/17
+10.8.128.n - Centar      - OSPF Area 201 totally stubby
+10.8.160.n - Zemun       - OSPF Area 202 totally stubby
+10.8.192.n - Banovo Brdo - OSPF Area 203 totally stubby
+10.8.224.n - Kaludjerica - OSPF Area 204 totally stubby
+
+# LPNet private range
+172.8.0.0/16 - RIP routing
+    Centar: 172.8.0.0/22
+        Pivnica 1 : 172.8.0.0/26
+        Pivnica 2 : 172.8.0.64/26
+        Pivnica 3 : 172.8.0.128/26
+        Pivnica 4 : 172.8.0.192/26
+        LP1-LP2   : 172.8.2.0/30
+        LP1-LP3   : 172.8.2.4/30
+        LP1-LP4   : 172.8.2.8/30
+        LP1-L3SW1 : 172.8.2.12/30
+
+    Zemun: 172.8.4.0/22
+        Pivnica 5 : 172.8.4.0/26
+        Pivnica 6 : 172.8.4.64/26
+        Pivnica 7 : 172.8.4.128/26
+        LP5-LP6   : 172.8.6.0/30
+        LP5-LP7   : 172.8.6.4/30
+        LP5-L3SW2 : 172.8.6.8/30
+
+    Banovo Brdo: 172.8.8.0/24
+        LPNET-L3SW3 : 172.8.8.0/30
+
+# Internet Service Provider (ISP) "101"
+Autonomous System 101
+101.8.0.0/16
+
+# Internet Service Provider (ISP) "102"
+Autonomous System 102
+102.8.0.0/16
+
+# Cloud provider
+Autonomous System 200
+200.8.1.0/28
+
+# Point-to-point public networks
+GW_ISP101 - GW_CP      : 103.8.0.0/30
+GW_CP - GW_ISP102      : 103.8.0.4/30
+GW_ISP102 - GW_AlfaNET : 103.8.0.8/30
+GW_AlfaNET - GW_ISP101 : 103.8.0.12/30
